@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 
 from .bayes_opt import BOResult, minimize
+from .calibration_outputs import save_calibration_artifacts
 from .ilqr_interface import ScenarioSpec
 from .multi_agent_cases import NeighborScene, build_neighbor_scene
 from .multi_agent_interface import EgoParameters, solve_ego
@@ -108,7 +109,7 @@ def calibrate_ego_case(
     verbose: bool = True,
     boundary_options: dict | None = None,
     flip_y: bool = False,
-) -> tuple[MultiAgentCalibrationResult, NeighborScene, EgoParameters]:
+) -> tuple[MultiAgentCalibrationResult, NeighborScene, EgoParameters, BOResult, ParameterSpace]:
     space = space or ParameterSpace(defs=EGO_PARAMETER_DEFS)
     scene = build_neighbor_scene(
         case_id,
@@ -158,13 +159,30 @@ def calibrate_ego_case(
         n_evaluations=int(len(bo.ys)),
         history=[float(v) for v in bo.history],
     )
-    return result, scene, best_params
+    return result, scene, best_params, bo, space
 
 
-def save_result(result: MultiAgentCalibrationResult, output_dir: Path) -> Path:
+def save_result(
+    result: MultiAgentCalibrationResult,
+    output_dir: Path,
+    *,
+    bo: BOResult | None = None,
+    space: ParameterSpace | None = None,
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     safe_case = result.case_id.replace("/", "_")
     suffix = "_flip_y" if result.y_flipped else ""
     path = output_dir / f"multi_agent_calibration_{safe_case}{suffix}.json"
     path.write_text(json.dumps(asdict(result), indent=2), encoding="utf-8")
+    if bo is not None and space is not None:
+        save_calibration_artifacts(
+            result,
+            bo,
+            space,
+            output_dir,
+            prefix=f"multi_agent_calibration_{safe_case}",
+            suffix=suffix,
+            base=EgoParameters(),
+            plot_title=f"Multi-agent calibration: {result.case_id}",
+        )
     return path

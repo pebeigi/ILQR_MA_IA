@@ -121,7 +121,7 @@ def main() -> None:
         )
 
     boundary_options = _boundary_options(args)
-    result = calibrate_case(
+    result, bo, space = calibrate_case(
         args.case_id,
         trajectory_points_path=args.trajectory_points,
         space=ParameterSpace(),
@@ -134,12 +134,15 @@ def main() -> None:
         flip_y=args.flip_y,
     )
 
-    result_path = save_result(result, args.output_dir)
+    result_path = save_result(result, args.output_dir, bo=bo, space=space)
     print("")
     print(f"Calibrated case: {result.case_id} ({result.movement_name})")
     print(f"Best RMS trajectory error: {result.best_score:.3f} m over {result.n_evaluations} evaluations")
     print(f"Best parameters: {result.best_params}")
     print(f"Saved result: {result_path}")
+    safe_case = result.case_id.replace("/", "_")
+    print(f"Saved evaluations CSV: {args.output_dir / f'calibration_{safe_case}_evaluations.csv'}")
+    print(f"Saved parameter distributions: {args.output_dir / f'calibration_{safe_case}_param_distributions.png'}")
 
     if args.plot:
         plot_path = _save_plot(

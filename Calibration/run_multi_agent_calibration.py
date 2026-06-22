@@ -22,6 +22,7 @@ from .multi_agent_calibrate import (
     calibrate_ego_case,
     save_result,
 )
+from .calibration_outputs import save_batch_summary_csv
 from .multi_agent_interface import EgoParameters, solve_ego
 from .observed_cases import DEFAULT_TRAJECTORY_POINTS, list_cases
 from .parameters import ParameterSpace
@@ -191,10 +192,11 @@ def main() -> None:
         )
 
     boundary_options = _boundary_options(args)
+    batch_results = []
     for i, case_id in enumerate(case_ids, start=1):
         print("")
         print(f"=== Case {i}/{len(case_ids)}: {case_id} ===")
-        result, scene, best_params = calibrate_ego_case(
+        result, scene, best_params, bo, space = calibrate_ego_case(
             case_id,
             trajectory_points_path=args.trajectory_points,
             space=ParameterSpace(defs=EGO_PARAMETER_DEFS),
@@ -208,13 +210,18 @@ def main() -> None:
             flip_y=args.flip_y,
         )
 
-        result_path = save_result(result, args.output_dir)
+        result_path = save_result(result, args.output_dir, bo=bo, space=space)
+        batch_results.append(result)
         print("")
         print(f"Calibrated ego case: {result.case_id} ({result.movement_name})")
         print(f"Neighbors present: {result.n_neighbors}")
         print(f"Best RMS trajectory error: {result.best_score:.3f} m over {result.n_evaluations} evaluations")
         print(f"Best parameters: {result.best_params}")
         print(f"Saved result: {result_path}")
+        suffix = "_flip_y" if result.y_flipped else ""
+        safe_case = result.case_id.replace("/", "_")
+        print(f"Saved evaluations CSV: {args.output_dir / f'multi_agent_calibration_{safe_case}{suffix}_evaluations.csv'}")
+        print(f"Saved parameter distributions: {args.output_dir / f'multi_agent_calibration_{safe_case}{suffix}_param_distributions.png'}")
 
         if args.plot:
             plot_paths = _save_plot(scene, best_params, args.output_dir, boundary_options=boundary_options)
@@ -222,6 +229,15 @@ def main() -> None:
                 traj_path, time_path = plot_paths
                 print(f"Saved plot: {traj_path}")
                 print(f"Saved time-series plot: {time_path}")
+
+    if len(batch_results) > 1:
+        summary_suffix = "_flip_y" if args.flip_y else ""
+        summary_path = save_batch_summary_csv(
+            batch_results,
+            args.output_dir / f"multi_agent_calibration_summary{summary_suffix}.csv",
+        )
+        print("")
+        print(f"Saved batch summary CSV: {summary_path}")
 
 
 if __name__ == "__main__":

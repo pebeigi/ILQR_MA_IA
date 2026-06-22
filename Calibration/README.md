@@ -134,6 +134,11 @@ Results and plots are written to `Calibration/outputs/multi_agent_calibration/`.
 With `--plot`, each case gets a spatial trajectory plot plus a `_timeseries.png`
 diagnostic plot comparing observed vs simulated `x(t)`, `y(t)`, and speed.
 
+Each calibration run also saves:
+- `*_evaluations.csv` — every BO trial with decoded parameters and score
+- `*_param_distributions.png` — histogram of sampled values per calibrated parameter (red line = best)
+- `multi_agent_calibration_summary.csv` — one row per case when using `--max-cases` (batch)
+
 ### Scope / current assumptions
 
 - Single-agent: one cost-weight set per agent, no inter-agent interaction.

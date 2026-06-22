@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 
 from .bayes_opt import BOResult, minimize
+from .calibration_outputs import save_calibration_artifacts
 from .ilqr_interface import AgentParameters, solve_single_agent
 from .observed_cases import ObservedCase, load_case
 from .parameters import ParameterSpace
@@ -85,7 +86,7 @@ def calibrate_case(
     verbose: bool = True,
     boundary_options: dict | None = None,
     flip_y: bool = False,
-) -> CalibrationResult:
+) -> tuple[CalibrationResult, BOResult, ParameterSpace]:
     space = space or ParameterSpace()
     if trajectory_points_path is None:
         case = load_case(case_id, flip_y=flip_y)
@@ -116,7 +117,7 @@ def calibrate_case(
         best_result.states[:, :2], case.path_local, n_samples=error_samples
     )
 
-    return CalibrationResult(
+    result = CalibrationResult(
         case_id=case.case_id,
         movement_name=case.movement_name,
         best_params=asdict(best_params),
@@ -125,11 +126,27 @@ def calibrate_case(
         n_evaluations=int(len(bo.ys)),
         history=[float(v) for v in bo.history],
     )
+    return result, bo, space
 
 
-def save_result(result: CalibrationResult, output_dir: Path) -> Path:
+def save_result(
+    result: CalibrationResult,
+    output_dir: Path,
+    *,
+    bo: BOResult | None = None,
+    space: ParameterSpace | None = None,
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     safe_case = result.case_id.replace("/", "_")
     path = output_dir / f"calibration_{safe_case}.json"
     path.write_text(json.dumps(asdict(result), indent=2), encoding="utf-8")
+    if bo is not None and space is not None:
+        save_calibration_artifacts(
+            result,
+            bo,
+            space,
+            output_dir,
+            prefix=f"calibration_{safe_case}",
+            plot_title=f"Calibration: {result.case_id}",
+        )
     return path
