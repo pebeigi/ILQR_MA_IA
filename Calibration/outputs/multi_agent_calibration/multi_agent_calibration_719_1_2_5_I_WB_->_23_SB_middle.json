@@ -1,0 +1,36 @@
+{
+  "case_id": "719_1_2_5_I_WB_->_23_SB_middle",
+  "movement_name": "I WB -> 23 SB middle",
+  "n_neighbors": 7,
+  "best_params": {
+    "q_speed": 1.019096946938244,
+    "desired_speed": 13.00365987222597,
+    "beta_2": 0.12611209081195615,
+    "beta_3": 93.17902534721166,
+    "running_destination": 0.29791286020318697,
+    "terminal_position_weight": 968.7251877735238,
+    "terminal_speed_weight": 28.932608601278403,
+    "terminal_heading_weight": 6.440408321893596,
+    "v_min": 1.0,
+    "neighbor_repulsion": 36.602213710926755,
+    "neighbor_repulsion_epsilon": 1.0,
+    "neighbor_proximity_speed": 8.49590134363889,
+    "neighbor_proximity_epsilon": 2.0,
+    "neighbor_activation_distance": 6.609948806490843
+  },
+  "best_score": 0.8964540732134315,
+  "error_breakdown": {
+    "mean_distance_m": 0.8036813743846305,
+    "rms_distance_m": 0.8964540732134315,
+    "max_distance_m": 1.3506131428434605,
+    "endpoint_distance_m": 0.07992616105656372
+  },
+  "n_evaluations": 8,
+  "history": [
+    0.8964540732134315,
+    0.8964540732134315,
+    0.8964540732134315,
+    0.8964540732134315,
+    0.8964540732134315
+  ]
+}

@@ -1,0 +1,9 @@
+"""Global configuration for the lightweight ILQ/ILQR package."""
+DT = 0.1
+HORIZON = 10.0
+USE_EULER = False
+EPS_TIME = 1e-9
+MAX_ITERATIONS = 25
+CONVERGENCE_TOL = 1e-2
+RELATIVE_COST_CONVERGENCE_TOL = 1e-6
+CONVERGENCE_PATIENCE = 3

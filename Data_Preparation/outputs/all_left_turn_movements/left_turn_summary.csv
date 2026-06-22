@@ -1,0 +1,5 @@
+intersection_id,intersection_name,movement_name,case_count
+1,I ST. & 23 ST.,I WB -> 23 SB middle,6
+2,I ST. & 22 ST.,22 NB middle -> I EB,14
+2,I ST. & 22 ST.,22 NB middle -> I WB,6
+3,H ST. & 23 ST.,23 SB middle -> H EB right,14
