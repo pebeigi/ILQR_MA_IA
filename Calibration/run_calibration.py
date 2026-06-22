@@ -14,6 +14,7 @@ from .calibrate_agent import calibrate_case, save_result
 from .ilqr_interface import AgentParameters, solve_single_agent
 from .observed_cases import DEFAULT_TRAJECTORY_POINTS, list_cases, load_case
 from .parameters import ParameterSpace
+from .paths import safe_case_filename
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "Calibration" / "outputs" / "agent_calibration"
@@ -96,7 +97,7 @@ def _save_plot(
     ax.legend(loc="best", fontsize=8)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    safe_case = case_id.replace("/", "_")
+    safe_case = safe_case_filename(case_id)
     suffix = "_flip_y" if case.y_flipped else ""
     path = output_dir / f"calibration_{safe_case}{suffix}.png"
     fig.tight_layout()
@@ -140,7 +141,7 @@ def main() -> None:
     print(f"Best RMS trajectory error: {result.best_score:.3f} m over {result.n_evaluations} evaluations")
     print(f"Best parameters: {result.best_params}")
     print(f"Saved result: {result_path}")
-    safe_case = result.case_id.replace("/", "_")
+    safe_case = safe_case_filename(result.case_id)
     print(f"Saved evaluations CSV: {args.output_dir / f'calibration_{safe_case}_evaluations.csv'}")
     print(f"Saved parameter distributions: {args.output_dir / f'calibration_{safe_case}_param_distributions.png'}")
 

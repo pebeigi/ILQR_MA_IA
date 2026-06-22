@@ -1,2 +1,8 @@
 # Large raw trajectory dataset (~339 MB)
 Data_Preparation/Third_Generation_Simulation_Data__TGSIM__Foggy_Bottom_Trajectories.csv
+
+# Generated calibration artifacts (also avoids Windows-invalid ">" in case_id filenames)
+Calibration/outputs/
+
+# macOS
+.DS_Store

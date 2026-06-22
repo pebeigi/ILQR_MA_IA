@@ -26,6 +26,7 @@ from .calibration_outputs import save_batch_summary_csv
 from .multi_agent_interface import EgoParameters, solve_ego
 from .observed_cases import DEFAULT_TRAJECTORY_POINTS, list_cases
 from .parameters import ParameterSpace
+from .paths import safe_case_filename
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "Calibration" / "outputs" / "multi_agent_calibration"
@@ -129,7 +130,7 @@ def _save_plot(
     ax.legend(loc="best", fontsize=8)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    safe_case = case.case_id.replace("/", "_")
+    safe_case = safe_case_filename(case.case_id)
     suffix = "_flip_y" if case.y_flipped else ""
     path = output_dir / f"multi_agent_calibration_{safe_case}{suffix}.png"
     fig.tight_layout()
@@ -219,7 +220,7 @@ def main() -> None:
         print(f"Best parameters: {result.best_params}")
         print(f"Saved result: {result_path}")
         suffix = "_flip_y" if result.y_flipped else ""
-        safe_case = result.case_id.replace("/", "_")
+        safe_case = safe_case_filename(result.case_id)
         print(f"Saved evaluations CSV: {args.output_dir / f'multi_agent_calibration_{safe_case}{suffix}_evaluations.csv'}")
         print(f"Saved parameter distributions: {args.output_dir / f'multi_agent_calibration_{safe_case}{suffix}_param_distributions.png'}")
 

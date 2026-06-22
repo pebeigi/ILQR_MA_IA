@@ -18,6 +18,7 @@ from .calibration_outputs import save_calibration_artifacts
 from .ilqr_interface import AgentParameters, solve_single_agent
 from .observed_cases import ObservedCase, load_case
 from .parameters import ParameterSpace
+from .paths import safe_case_filename
 from .trajectory_error import TrajectoryError, trajectory_error
 
 FAILURE_PENALTY = 1e6
@@ -137,7 +138,7 @@ def save_result(
     space: ParameterSpace | None = None,
 ) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    safe_case = result.case_id.replace("/", "_")
+    safe_case = safe_case_filename(result.case_id)
     path = output_dir / f"calibration_{safe_case}.json"
     path.write_text(json.dumps(asdict(result), indent=2), encoding="utf-8")
     if bo is not None and space is not None:

@@ -21,6 +21,7 @@ from .ilqr_interface import ScenarioSpec
 from .multi_agent_cases import NeighborScene, build_neighbor_scene
 from .multi_agent_interface import EgoParameters, solve_ego
 from .parameters import DEFAULT_PARAMETER_DEFS, ParameterDef, ParameterSpace
+from .paths import safe_case_filename
 from .trajectory_error import TrajectoryError, trajectory_error
 
 FAILURE_PENALTY = 1e6
@@ -170,7 +171,7 @@ def save_result(
     space: ParameterSpace | None = None,
 ) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    safe_case = result.case_id.replace("/", "_")
+    safe_case = safe_case_filename(result.case_id)
     suffix = "_flip_y" if result.y_flipped else ""
     path = output_dir / f"multi_agent_calibration_{safe_case}{suffix}.json"
     path.write_text(json.dumps(asdict(result), indent=2), encoding="utf-8")
