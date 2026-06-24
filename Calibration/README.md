@@ -139,11 +139,61 @@ Each calibration run also saves:
 - `*_param_distributions.png` — histogram of sampled values per calibrated parameter (red line = best)
 - `multi_agent_calibration_summary.csv` — one row per case when using `--max-cases` (batch)
 
+## Nash-game calibration (all agents optimized jointly)
+
+The ego pipeline above is an *optimal-control* problem: neighbors are fixed
+(replayed), so there is no game. The Nash pipeline instead makes **every**
+co-present vehicle a real ILQR player. All agents are optimized **together** as a
+Nash game (each best-responds to the others through inter-agent repulsion and
+proximity-speed costs) and calibrated jointly.
+
+Pipeline:
+
+- `nash_cases.py` — reconstructs each agent (ego + qualifying neighbors) as an
+  `AgentTrack` with its own initial state, destination, terminal heading, and
+  entry/exit step on a shared ego-relative time grid. Neighbors must be present
+  for at least `--min-presence` of the horizon. **Stopped vehicles** (path length
+  `< --min-travel`, default 5 m, e.g. waiting at a red signal) are excluded from
+  the game but kept in plots and CSV as **ignored**.
+- `nash_interface.py` — `NashAgentParameters` (behavioral + inter-agent
+  interaction weights) and `build_nash_game`/`solve_nash`, which build the
+  N-player `GameDefinition` (with `PairwiseAgentRepulsionCost` and
+  `AgentProximitySpeedCost` coupling the players) and solve the joint Nash game
+  with a destination-seeking warm start.
+- `nash_calibrate.py` — **per-agent** weights, **all-agents** objective (mean
+  trajectory error over every agent). Because a single joint BO over N×D weights
+  is intractable, it uses **block coordinate descent**: it cycles over agents
+  (`--rounds` sweeps) and runs a low-dimensional BO over one agent's weights at a
+  time, re-solving the full game each evaluation, accepting an update only if it
+  lowers the joint objective.
+
+```bash
+# joint Nash-game calibration of one case (all agents), with curbs + plots
+python -m Calibration.run_nash_calibration \
+    --case-id "719_1_2_5_I_WB_->_23_SB_middle" --flip-y --use-boundaries --plot
+
+# limit the number of game players and tune the search budget
+python -m Calibration.run_nash_calibration --case-id "..." \
+    --max-agents 5 --rounds 2 --n-initial 6 --n-iterations 15
+```
+
+Outputs (`Calibration/outputs/nash_calibration/`):
+- `nash_calibration_<case>.json` — per-agent best weights + per-agent error + mean error
+- `nash_calibration_<case>_agent_params.csv` — one row per agent (weights + error)
+- `nash_calibration_<case>.png` — observed (solid) vs simulated (dashed) paths for all agents
+- `nash_calibration_<case>_param_distributions.png` — distribution of each parameter **across agents**
+
 ### Scope / current assumptions
 
 - Single-agent: one cost-weight set per agent, no inter-agent interaction.
-- Multi-agent: only the ego is optimized; neighbors are **replayed** from data
-  (not re-simulated), so the ego reacts to the real environment.
+- Multi-agent (ego): only the ego is optimized; neighbors are **replayed** from
+  data (not re-simulated), so the ego reacts to the real environment.
+- Nash-game: all co-present **moving** agents are optimized jointly (a real game)
+  and calibrated together with per-agent weights. Stopped neighbors are filtered
+  out before calibration (`--min-travel`, default 5 m) but shown on plots as
+  gray **ignored** tracks. Late-entering agents hold at their entry position
+  until their first observed step; each agent is scored only over its valid
+  (present) steps.
 - Each observed case is solved in its own local frame (start translated to the
   origin); the ILQR dynamics are translation-invariant.
 - Street boundaries are optional (`--use-boundaries`) and use real curbs only
